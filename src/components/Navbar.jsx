@@ -1,18 +1,43 @@
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { AppBar, Toolbar, Button, Typography, TextField } from '@mui/material';
+import { styled } from '@mui/system';
 
 const Navbar = () => {
+  const Grow = styled('div')({
+    flexGrow: 1,
+  });
+
   return (
-    <AppBar position="static">
+    <AppBar position="fixed">
       <Toolbar>
+        <Button color="inherit">AutoLogo</Button>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Your Logo
+          <TextField
+            id="navbar-suche"
+            label="Suche"
+            variant="outlined"
+            color="secondary"
+          />
         </Typography>
-        <Button color="inherit">Home</Button>
-        <Button color="inherit">About</Button>
-        <Button color="inherit">Contact</Button>
+        <Grow />
+        <Typography variant="h6" component="div">
+          <TextField
+            id="navbar-benutzer"
+            label="Benutzer"
+            variant="outlined"
+            color="secondary"
+          />
+        </Typography>
+        <Typography variant="h6" component="div">
+          <TextField
+            id="navbar-passwort"
+            label="Passwort"
+            variant="outlined"
+            color="secondary"
+          />
+        </Typography>
+        <Button color="inherit">Login</Button>
       </Toolbar>
     </AppBar>
   );
 };
-
 export default Navbar;
