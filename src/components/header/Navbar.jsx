@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Button, Typography, TextField } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
+import SearchIcon from '@mui/icons-material/Search';
 
 const Navbar = () => {
   const Grow = styled("div")({
@@ -11,8 +12,12 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const handleLoginClick = () => {
+  const handleSearchClick = () => {
     navigate("/search");
+  };
+
+  const handleLoginClick = () => {
+    navigate("/login");
   };
 
   return (
@@ -20,6 +25,9 @@ const Navbar = () => {
       <Toolbar>
         <Button onClick={handleLogoClick} color="inherit">
           AutoLogo
+        </Button>
+        <Button onClick={handleSearchClick} variant="contained" color="primary">
+          Erweiterte Suche <SearchIcon />
         </Button>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <TextField
@@ -46,7 +54,9 @@ const Navbar = () => {
             color="secondary"
           />
         </Typography>
-        <Button onClick={handleLoginClick} color="inherit">Login</Button>
+        <Button onClick={handleLoginClick} color="inherit">
+          Login
+        </Button>
       </Toolbar>
     </AppBar>
   );
