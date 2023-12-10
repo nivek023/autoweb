@@ -99,7 +99,7 @@ const AutoSuche = () => {
         }
         const data = await response.json();
         console.log(data);
-        const manufacturers = data._embedded.autos.map((auto) => auto.hersteller);
+        const manufacturers =  [...new Set(data._embedded.autos.map((auto) => auto.hersteller))];
         console.log(manufacturers);
         setManufacturerOptions(manufacturers);
         setLoading(false);
