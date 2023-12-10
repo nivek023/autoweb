@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect  } from 'react';
 import {
   Table,
   TableContainer,
@@ -18,32 +18,57 @@ import {
   FormControlLabel, 
   Checkbox, 
   RadioGroup, 
-  Radio
+  Radio,
 } from '@mui/material';
+import { Check, Close, Search   } from '@mui/icons-material'; 
 
 const AutoSuche = () => {
   const [autoData, setAutoData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchModellBezeichnung, setSearchModellBezeichnung] = useState('');
 
-  const [searchText, setSearchText] = useState('');
+  const [searchFin, setSearchFin] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
-  const [checkboxChecked, setCheckboxChecked] = useState(false);
+  const [isAktuellesModell, setIsAktuellesModell] = useState(false);
   const [radioValue, setRadioValue] = useState('');
+  const [manufacturerOptions, setManufacturerOptions] = useState([]);
+
+  const [searchError, setSearchError] = useState(false);
+
+
+  // Function to handle checkbox change
+  const handleCheckboxChange = (e) => {
+    setIsAktuellesModell(e.target.checked);
+  };
 
   const handleSearch = async () => {
     setLoading(true);
+    setSearchError(false);
     try {
       let apiUrl = '/api';
-  
-      if (searchTerm) {
-        apiUrl += `?modellbezeichnung=${searchTerm}`;
+
+      if (searchModellBezeichnung) {
+         apiUrl = appendSearchTerm(apiUrl, 'modellbezeichnung', searchModellBezeichnung);
       }
 
-      if (searchText) {
-        apiUrl += `${searchTerm ? '&' : '?'}fin=${searchText}`;
+      if (searchFin) {
+        apiUrl = appendSearchTerm(apiUrl, 'fin', searchFin);
       }
   
+      if(isAktuellesModell){
+        console.log(isAktuellesModell)
+        apiUrl = appendSearchTerm(apiUrl, 'istAktuellesModell', isAktuellesModell);
+      }
+
+      if(selectedOption){
+        console.log(selectedOption)
+        apiUrl = appendSearchTerm(apiUrl, 'hersteller', selectedOption);
+      }
+
+      if (radioValue) {
+        apiUrl = appendSearchTerm(apiUrl, 'getriebeArt', radioValue);
+      }
+
       const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error('Failed to fetch data');
@@ -51,12 +76,51 @@ const AutoSuche = () => {
       
       const data = await response.json();
       setAutoData(Array.isArray(data._embedded.autos) ? data._embedded.autos : []);
+      console.log(autoData);
       setLoading(false);
+      
+      setSearchError(false); 
+
     } catch (error) {
       console.error('Error fetching data:', error);
       setLoading(false);
+      setSearchError(true);
     }
   };
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setSearchError(false);
+      try {
+        const response = await fetch('/api'); 
+        if (!response.ok) {
+          throw new Error('Failed to fetch manufacturers');
+        }
+        const data = await response.json();
+        console.log(data);
+        const manufacturers = data._embedded.autos.map((auto) => auto.hersteller);
+        console.log(manufacturers);
+        setManufacturerOptions(manufacturers);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching manufacturers:', error);
+        setLoading(false);
+       
+      }
+    }
+
+    fetchData();
+  }, []);
+
+
+  function appendSearchTerm(apiUrl, searchTerm, searchValue) {
+    if (searchValue) {
+      apiUrl += `${apiUrl.includes('?') ? '&' : '?'}${searchTerm}=${searchValue}`;
+    }
+    return apiUrl;
+  }
+
 
   return (
     <div>
@@ -70,8 +134,8 @@ const AutoSuche = () => {
               label="Modellbezeichnung"
               variant="outlined"
               fullWidth
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchModellBezeichnung}
+              onChange={(e) => setSearchModellBezeichnung(e.target.value)}
               style={{ marginBottom: '20px' }}
             />
           </Grid>
@@ -80,8 +144,8 @@ const AutoSuche = () => {
               label="Fin"
               variant="outlined"
               fullWidth
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              value={searchFin}
+              onChange={(e) => setSearchFin(e.target.value)}
               style={{ marginBottom: '20px' }}
             />
           </Grid>
@@ -93,17 +157,25 @@ const AutoSuche = () => {
                 onChange={(e) => setSelectedOption(e.target.value)}
                 label="Hersteller"
               >
-                <MenuItem value="Option 1">Option 1</MenuItem>
-                <MenuItem value="Option 2">Option 2</MenuItem>
-                <MenuItem value="Option 3">Option 3</MenuItem>
+                {manufacturerOptions.map((option, index) => (
+                  <MenuItem key={index} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={2.5}>
-            <FormControlLabel
-              control={<Checkbox checked={checkboxChecked} onChange={(e) => setCheckboxChecked(e.target.checked)} />}
-              label="ist ein aktuelles Modell"
-            />
+          <Grid item xs={12} sm={1.9}>
+          <FormControlLabel
+        control={
+          <Checkbox
+            checked={isAktuellesModell}
+            onChange={handleCheckboxChange}
+            color="primary" // Customize the color if needed
+          />
+        }
+        label="ist aktuelles Modell"
+      />
           </Grid>
           <Grid item xs={12}>
             <RadioGroup
@@ -113,17 +185,20 @@ const AutoSuche = () => {
               onChange={(e) => setRadioValue(e.target.value)}
               row
             >
-              <FormControlLabel value="Option A" control={<Radio />} label="Manuell" />
-              <FormControlLabel value="Option B" control={<Radio />} label="Automatik" />
+              <FormControlLabel value="MANUELL" control={<Radio />} label="Manuell" />
+              <FormControlLabel value="AUTOMATIK" control={<Radio />} label="Automatik" />
             </RadioGroup>
           </Grid>
           <Grid item xs={12} sm={1}>
-            <Button variant="contained" color="primary" onClick={handleSearch} style={{ marginBottom: '20px' }}>
+            <Button variant="contained" color="primary" startIcon={<Search  />} onClick={handleSearch} style={{ marginBottom: '20px' }}>
               Suche
             </Button>
           </Grid>
+          <Grid item xs={12} sm={12}>
       {loading ? (
         <Typography>Loading...</Typography>
+      ) : searchError ? (
+        <Typography>Keine Autos gefunden.</Typography>
       ) : (
         <TableContainer component={Paper}>
           <Table>
@@ -132,9 +207,6 @@ const AutoSuche = () => {
                 <TableCell>Modellbezeichnung</TableCell>
                 <TableCell>Fin</TableCell>
                 <TableCell>Hersteller</TableCell>
-                <TableCell>Kilometerstand</TableCell>
-                <TableCell>Auslieferungstag</TableCell>
-                <TableCell>Grundpreis</TableCell>
                 <TableCell>ist aktuelles Modell</TableCell>
                 <TableCell>Getriebeart</TableCell>
               </TableRow>
@@ -145,10 +217,7 @@ const AutoSuche = () => {
                   <TableCell>{auto.modellbezeichnung}</TableCell>
                   <TableCell>{auto.fin}</TableCell>
                   <TableCell>{auto.hersteller}</TableCell>
-                  <TableCell>{auto.kilometerstand}</TableCell>
-                  <TableCell>{auto.auslieferungstag}</TableCell>
-                  <TableCell>{auto.grundpreis}</TableCell>
-                  <TableCell>{auto.istAktuellesModell}</TableCell>
+                  <TableCell>{auto.istAktuellesModell ? <Check /> : <Close />}</TableCell>
                   <TableCell>{auto.getriebeArt}</TableCell>
                 </TableRow>
               ))}
@@ -156,6 +225,7 @@ const AutoSuche = () => {
           </Table>
         </TableContainer>
       )}
+       </Grid>
        </Grid>
       </form>
     </div>
