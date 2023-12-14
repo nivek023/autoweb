@@ -42,14 +42,18 @@ const AutoSuche = () => {
 
   const navigate = useNavigate();
 
-  const handleRowClick = () => {
-    navigate('/details/${id}');
+  const handleRowClick = (params) => {
+    navigate(`/details/${params.row.uniqueId}`);
   };
 
 
   const handleCheckboxChange = (e) => {
     setIsAktuellesModell(e.target.checked);
   };
+
+
+
+
 
   const handleSearch = async () => {
     setLoading(true);
@@ -71,12 +75,10 @@ const AutoSuche = () => {
       }
   
       if(isAktuellesModell){
-        console.log(isAktuellesModell)
         apiUrl = appendSearchTerm(apiUrl, 'istAktuellesModell', isAktuellesModell);
       }
 
       if(selectedOption){
-        console.log(selectedOption)
         apiUrl = appendSearchTerm(apiUrl, 'hersteller', selectedOption);
       }
 
@@ -91,7 +93,6 @@ const AutoSuche = () => {
       
       const data = await response.json();
       setAutoData(Array.isArray(data._embedded.autos) ? data._embedded.autos : []);
-      console.log(autoData);
       setLoading(false);
       
       setSearchError(false); 
@@ -113,9 +114,7 @@ const AutoSuche = () => {
           throw new Error('Failed to fetch manufacturers');
         }
         const data = await response.json();
-        console.log(data);
         const manufacturers =  [...new Set(data._embedded.autos.map((auto) => auto.hersteller))];
-        console.log(manufacturers);
         setManufacturerOptions(manufacturers);
         setLoading(false);
       } catch (error) {
@@ -136,11 +135,11 @@ const AutoSuche = () => {
     return apiUrl;
   }
 
-  const autoDataWithUniqueId = autoData.map((auto, idx) => ({
+  const autoDataWithUniqueId = autoData.map((auto) => ({
     ...auto,
-    uniqueId: `row_${idx}`, 
+    uniqueId: auto.fin, 
   }));
-
+  console.log(autoDataWithUniqueId)
   return (
     <div>
       <form onSubmit={handleSearch}>
@@ -188,6 +187,7 @@ const AutoSuche = () => {
               style={{ marginBottom: '20px' }}
             />
           </Grid>
+
           <Grid item xs={12} sm={12}>
             <FormControl variant="outlined" fullWidth>
               <InputLabel>Hersteller</InputLabel>
@@ -240,6 +240,7 @@ const AutoSuche = () => {
         <DataGrid
           rows={autoDataWithUniqueId}
           getRowId={(row) => row.uniqueId}
+          onRowClick={handleRowClick}
           columns={[
             { field: 'modellbezeichnung', headerName: 'Modellbezeichnung', flex: 1 },
             { field: 'fin', headerName: 'Fin', flex: 1 },
