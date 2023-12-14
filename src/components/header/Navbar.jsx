@@ -2,12 +2,19 @@ import { AppBar, Toolbar, Button, Typography, TextField } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
 import SearchIcon from '@mui/icons-material/Search';
+import { useState } from 'react';
+import { useAuth } from "../provider/useAuth";
+
+
 
 const Navbar = () => {
   const Grow = styled("div")({
     flexGrow: 1,
   });
+  const [benutzer, setBenutzer] = useState("");
+  const [passwort, setPasswort] = useState("");
   const navigate = useNavigate();
+  const {login, rolle} = useAuth();
   const handleLogoClick = () => {
     navigate("/");
   };
@@ -15,9 +22,8 @@ const Navbar = () => {
   const handleSearchClick = () => {
     navigate("/search");
   };
-
-  const handleLoginClick = () => {
-    navigate("/login");
+  const handleLoginClick =  () => {
+    login(benutzer, passwort);
   };
 
   return (
@@ -44,6 +50,8 @@ const Navbar = () => {
             label="Benutzer"
             variant="outlined"
             color="secondary"
+            value={benutzer}
+            onChange={(e) => setBenutzer(e.target.value)}
           />
         </Typography>
         <Typography variant="h6" component="div">
@@ -52,10 +60,13 @@ const Navbar = () => {
             label="Passwort"
             variant="outlined"
             color="secondary"
+            type="password"
+            value={passwort}
+            onChange={(e) => setPasswort(e.target.value)}
           />
         </Typography>
         <Button onClick={handleLoginClick} color="inherit">
-          Login
+          {rolle}
         </Button>
       </Toolbar>
     </AppBar>
