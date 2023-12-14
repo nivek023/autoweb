@@ -19,13 +19,18 @@ import {
   Checkbox, 
   RadioGroup, 
   Radio,
+  IconButton,
 } from '@mui/material';
-import { Check, Close, Search   } from '@mui/icons-material'; 
+import { Check, Close, Search, Delete   } from '@mui/icons-material'; 
+import { useNavigate } from 'react-router-dom';
+import { DataGrid } from '@mui/x-data-grid';
+import FormHelperText from '@mui/material/FormHelperText';
 
 const AutoSuche = () => {
   const [autoData, setAutoData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchModellBezeichnung, setSearchModellBezeichnung] = useState('');
+  const [searchEigentuemerBezeichnung, setSearchEigentzemerBezeichnung] = useState('');
 
   const [searchFin, setSearchFin] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
@@ -35,8 +40,13 @@ const AutoSuche = () => {
 
   const [searchError, setSearchError] = useState(false);
 
+  const navigate = useNavigate();
 
-  // Function to handle checkbox change
+  const handleRowClick = () => {
+    navigate('/details/${id}');
+  };
+
+
   const handleCheckboxChange = (e) => {
     setIsAktuellesModell(e.target.checked);
   };
@@ -50,6 +60,11 @@ const AutoSuche = () => {
       if (searchModellBezeichnung) {
          apiUrl = appendSearchTerm(apiUrl, 'modellbezeichnung', searchModellBezeichnung);
       }
+
+      
+      if (searchEigentuemerBezeichnung) {
+        apiUrl = appendSearchTerm(apiUrl, 'eigentuemer', searchEigentuemerBezeichnung);
+     }
 
       if (searchFin) {
         apiUrl = appendSearchTerm(apiUrl, 'fin', searchFin);
@@ -121,14 +136,20 @@ const AutoSuche = () => {
     return apiUrl;
   }
 
+  const autoDataWithUniqueId = autoData.map((auto, idx) => ({
+    ...auto,
+    uniqueId: `row_${idx}`, 
+  }));
 
   return (
     <div>
-      <Typography variant="h4" gutterBottom>
-        Suchformular
-      </Typography>
       <form onSubmit={handleSearch}>
         <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="h4" gutterBottom >
+                Suchformular
+              </Typography>
+            </Grid>
           <Grid item xs={12} sm={12}>
             <TextField
               label="Modellbezeichnung"
@@ -139,6 +160,7 @@ const AutoSuche = () => {
               style={{ marginBottom: '20px' }}
             />
           </Grid>
+          
           <Grid item xs={12} sm={12}>
             <TextField
               label="Fin"
@@ -146,6 +168,23 @@ const AutoSuche = () => {
               fullWidth
               value={searchFin}
               onChange={(e) => setSearchFin(e.target.value)}
+              helperText={
+                <FormHelperText style={{ color: 'red' }}>
+                  {searchFin.length !== 17 && searchFin !== '' ? "Die FIN muss genau 17 Zeichen haben" : ""}
+                </FormHelperText>
+              }
+              style={{ marginBottom: '20px' }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={12}>
+            <TextField
+              label="Eigentuemer"
+              placeholder="Den Eigentuemer oder einen Teil davon"
+              variant="outlined"
+              fullWidth
+              value={searchEigentuemerBezeichnung}
+              onChange={(e) => setSearchEigentzemerBezeichnung(e.target.value)}
               style={{ marginBottom: '20px' }}
             />
           </Grid>
@@ -171,7 +210,7 @@ const AutoSuche = () => {
           <Checkbox
             checked={isAktuellesModell}
             onChange={handleCheckboxChange}
-            color="primary" // Customize the color if needed
+            color="primary"
           />
         }
         label="ist aktuelles Modell"
@@ -194,39 +233,45 @@ const AutoSuche = () => {
               Suche
             </Button>
           </Grid>
-          <Grid item xs={12} sm={12}>
-      {loading ? (
-        <Typography>Loading...</Typography>
-      ) : searchError ? (
-        <Typography>Keine Autos gefunden.</Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Modellbezeichnung</TableCell>
-                <TableCell>Fin</TableCell>
-                <TableCell>Hersteller</TableCell>
-                <TableCell>ist aktuelles Modell</TableCell>
-                <TableCell>Getriebeart</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {autoData.map((auto) => (
-                <TableRow key={auto.id}>
-                  <TableCell>{auto.modellbezeichnung}</TableCell>
-                  <TableCell>{auto.fin}</TableCell>
-                  <TableCell>{auto.hersteller}</TableCell>
-                  <TableCell>{auto.istAktuellesModell ? <Check /> : <Close />}</TableCell>
-                  <TableCell>{auto.getriebeArt}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+  
        </Grid>
-       </Grid>
+
+       <div style={{ height: 400, width: '100%' }}>
+        <DataGrid
+          rows={autoDataWithUniqueId}
+          getRowId={(row) => row.uniqueId}
+          columns={[
+            { field: 'modellbezeichnung', headerName: 'Modellbezeichnung', flex: 1 },
+            { field: 'fin', headerName: 'Fin', flex: 1 },
+            { 
+              field: 'eigentuemer', 
+              headerName: 'Eigentuemer', 
+              flex: 1, 
+              renderCell: (params) => (
+                params.value?.eigentuemer 
+              )
+            },
+            { field: 'hersteller', headerName: 'Hersteller', flex: 1 },
+            { field: 'istAktuellesModell', headerName: 'ist aktuelles Modell', flex: 1, renderCell: (params) => (
+                params.value ? <Check /> : <Close />
+              )},
+            { field: 'getriebeArt', headerName: 'Getriebeart', flex: 1 },
+            {
+              field: 'actions',
+              headerName: 'Actions',
+              flex: 1,
+              renderCell: (params) => (
+                <IconButton aria-label="delete" onClick={() => handleRowClick(params.row.uniqueId)}>
+                  <Delete />
+                </IconButton>
+              ),
+            },
+          ]}
+        />
+      </div>
+
+
+
       </form>
     </div>
   );

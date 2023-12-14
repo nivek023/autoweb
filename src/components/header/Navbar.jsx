@@ -1,13 +1,11 @@
+import React from 'react';
 import { AppBar, Toolbar, Button, Typography, TextField } from "@mui/material";
-import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
 import SearchIcon from '@mui/icons-material/Search';
 
 const Navbar = () => {
-  const Grow = styled("div")({
-    flexGrow: 1,
-  });
   const navigate = useNavigate();
+
   const handleLogoClick = () => {
     navigate("/");
   };
@@ -29,31 +27,28 @@ const Navbar = () => {
         <Button onClick={handleSearchClick} variant="contained" color="primary">
           Erweiterte Suche <SearchIcon />
         </Button>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          <TextField
-            id="navbar-suche"
-            label="Suche"
-            variant="outlined"
-            color="secondary"
-          />
-        </Typography>
-        <Grow />
-        <Typography variant="h6" component="div">
-          <TextField
-            id="navbar-benutzer"
-            label="Benutzer"
-            variant="outlined"
-            color="secondary"
-          />
-        </Typography>
-        <Typography variant="h6" component="div">
-          <TextField
-            id="navbar-passwort"
-            label="Passwort"
-            variant="outlined"
-            color="secondary"
-          />
-        </Typography>
+        <div style={{ marginLeft: 'auto' }} /> {/* Create a spacer to push the fields to the right */}
+        <TextField
+          id="navbar-suche"
+          label="Suche"
+          variant="outlined"
+          color="secondary"
+          style={{ marginLeft: '10px' }} // Adjust the margin as needed
+        />
+        <TextField
+          id="navbar-benutzer"
+          label="Benutzer"
+          variant="outlined"
+          color="secondary"
+          style={{ marginLeft: '10px' }} // Adjust the margin as needed
+        />
+        <TextField
+          id="navbar-passwort"
+          label="Passwort"
+          variant="outlined"
+          color="secondary"
+          style={{ marginLeft: '10px' }} // Adjust the margin as needed
+        />
         <Button onClick={handleLoginClick} color="inherit">
           Login
         </Button>
@@ -61,4 +56,5 @@ const Navbar = () => {
     </AppBar>
   );
 };
+
 export default Navbar;
